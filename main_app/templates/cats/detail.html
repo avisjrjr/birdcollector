@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link 
+  href="https://cdn.jsdelivr.net/npm/mc-datepicker/dist/mc-calendar.min.css" 
+  rel="stylesheet" 
+/>
+<script 
+  src="https://cdn.jsdelivr.net/npm/mc-datepicker/dist/mc-calendar.min.js"
+>
+</script>
+<link 
+  rel="stylesheet" 
+  type="text/css" 
+  href="{% static 'css/cat-detail.css' %}"
+/>
+<script defer src="{% static 'js/cat-detail.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<section class="cat-container">
+  <div class="cat-img">
+      {% if cat.photo.url %}
+      <img 
+        src="{{cat.photo.url}}" 
+        alt="A photo of {{cat.name}}"
+        class="usr-img"
+      >
+    {% else %}
+      <img 
+      src="{% static 'images/bird2.png' %}" 
+      alt="A skater boy cat"
+      >
+    {% endif %}
+  </div>
+  <div class="cat-details">
+    <h1>{{ cat.name }}</h1>
+    {% if cat.age > 0 %}
+      <h2>A {{ cat.age }} year old {{ cat.breed }}</h2>
+    {% else %}
+      <h2>A {{ cat.breed }} hatchling.</h2>
+    {% endif %}
+    <p>{{ cat.description }}</p>
+<div class="cat-actions">
+      <a href="{% url 'cats_update' cat.id %}" class="btn warn">Edit</a>
+      <a href="{% url 'cats_delete' cat.id %}" class="btn danger">Delete</a>
+    </div>
+    <h3>Change {{ cat.name }}'s photo</h3>
+    <p id="file-name"></p>
+    <form 
+      action="{% url 'add_photo' cat.id %}"
+      enctype="multipart/form-data"
+      method="POST"
+    >
+      {% csrf_token %}
+      <label class="btn secondary">
+        Choose photo
+        <input type="file" name="photo-file" id="file-input">
+      </label>
+      <button type="submit" class="btn submit">Upload Photo</button>
+    </form>
+  </div>
+</section>
+<div class="feedings-toy-container">
+  <section class="feedings">
+    <div class="subsection-title">
+      <h2>Feedings</h2>
+      <img 
+        src="{% static 'images/birdsit.gif' %}" 
+        alt="An ice cream cone cat"
+      />
+      <img 
+        src="{% static 'images/birdfly.gif' %}"
+        alt="A cat as onigiri"
+      />
+      <img 
+        src="{% static 'images/birdbranch.gif' %}" 
+        alt="A kabob of kittens"
+      />
+    </div>
+    <h3>Add a Feeding</h3>
+    <form
+      method="post" 
+      class="subsection-content"
+      action="{% url 'add_feeding' cat.id %}"
+    >
+      {% comment %} New markup below {% endcomment %}
+      {% if cat.fed_for_today %}
+        <p class="fed">{{cat.name}} has been fed all their meals for today!</p>
+      {% else %}
+        <p class="unfed">{{cat.name}} might be hungry!</p>
+      {% endif %}
+      {% csrf_token %}
+      {{ feeding_form.as_p }}
+      <button type="submit" class="btn submit">Add Feeding</button>
+    </form>
+    <h3>Past Feedings</h3>
+    {% if cat.feeding_set.all.count %}
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Meal</th></tr>
+        </thead>
+        <tbody>
+          {% for feeding in cat.feeding_set.all %}
+            <tr>
+              <td>{{feeding.date}}</td>
+              <td>{{feeding.get_meal_display}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="subsection-content">{{cat.name}} has never been fed 😟</p>
+    {% endif %}
+      </tbody>
+    </table>
+  </section>
+    <section class="toys">
+    <div class="subsection-title">
+      <h2>Toys</h2>
+      <img src="{% static 'images/ducky.gif' %}" alt="A ball of string" />
+      <img src="{% static 'images/ducky1.gif' %}" alt="A mouse" />
+      <img src="{% static 'images/notducky.gif' %}" alt="A fishy toy" />
+    </div>
+    <h3>{{ cat.name }}'s Toys</h3>
+    <div class="subsection-content">
+      {% if cat.toys.count %}
+        {% for toy in cat.toys.all %}
+          <div class="toy-container">
+            <div 
+              class="color-block"
+              style="background-color: {{ toy.color }}"
+            ></div>
+            <a href="{% url 'toys_detail' toy.id %}">
+              <p>A {{ toy.color }} {{ toy.name }}</p>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="no-toys">{{cat.name}} doesn't have any toys 😞</p>
+      {% endif %}
+    </div>
+<h3>Available Toys</h3>
+    <div class="subsection-content">
+      {% comment %} We'll display available toys here {% endcomment %}
+      {% if toys.count %}
+        {% for toy in toys.all %}
+          <div class="toy-container">
+            <div 
+              class="color-block"
+              style="background-color: {{ toy.color }}"
+            ></div>
+            <a href="{% url 'toys_detail' toy.id %}">
+              <p>A {{ toy.color }} {{ toy.name }}</p>
+            </a>
+<div class="card-action">
+  <form action="{% url 'assoc_toy' cat.id toy.id %}" method="post">
+      {% csrf_token %}
+    <button type="submit" class="btn">Add</button>
+  </form>
+</div>
+        {% endfor %}
+      {% else %}
+        <p class="all-toys">
+          {{cat.name}} already has all the available toys 🥳
+        </p>
+      {% endif %}    </div>
+  </section>
+</div>
+{% endblock %}
